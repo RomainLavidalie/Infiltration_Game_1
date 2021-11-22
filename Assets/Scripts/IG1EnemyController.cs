@@ -6,6 +6,11 @@ using UnityEngine.SceneManagement;
 
 public class IG1EnemyController : AgentController
 {
+    public Transform projectile;
+    private float PcentLife = 100;
+    private FSMachine<TSTSBase, TSTStateInfo> FSM = new FSMachine<TSTSBase, TSTStateInfo>();
+    TSTStateInfo FSMInfos = new TSTStateInfo();
+
     void Start()
     {
         Transform player = GameObject.FindGameObjectWithTag("Player").transform;
@@ -17,22 +22,40 @@ public class IG1EnemyController : AgentController
 
     void HandleSight(SightStimulus sti, AISense<SightStimulus>.Status evt)
     {
-        if(evt == AISense<SightStimulus>.Status.Enter)
-            Debug.Log("Objet "+evt+" vue en " + sti.position);       
+        FSMInfos.CanSeeTarget = evt == AISense<SightStimulus>.Status.Enter || evt == AISense<SightStimulus>.Status.Stay;
 
-        FindPathTo(sti.position);
+        if (evt == AISense<SightStimulus>.Status.Enter)
+            Debug.Log("Objet " + evt + " vue en " + sti.position);
 
-        if((sti.position - transform.position).sqrMagnitude < 2 * 2)
+        if (evt != AISense<SightStimulus>.Status.Leave)
         {
-            Scene scene = SceneManager.GetActiveScene();
-            SceneManager.LoadScene(scene.name);
+            FSMInfos.LastPlayerPosition = sti.position;
+            FSMInfos.LastPlayerVelocity = sti.velocity;
+            FSMInfos.LastPlayerPerceivedTime = Time.time;
         }
+
     }
 
     void HandleHearing(HearingStimulus sti, AISense<HearingStimulus>.Status evt)
     {
+        FSMInfos.CanHearTarget =
+            evt == AISense<HearingStimulus>.Status.Enter || evt == AISense<HearingStimulus>.Status.Stay;
+
         if (evt == AISense<HearingStimulus>.Status.Enter)
             Debug.Log("Objet " + evt + " ouïe en " + sti.position);
-        FindPathTo(sti.position);
+
+        if (evt != AISense<HearingStimulus>.Status.Leave)
+        {
+            FSMInfos.LastPlayerPosition = sti.position;
+            FSMInfos.LastPlayerPerceivedTime = Time.time;
+        }
+    }
+
+    void Update()
+    {
+        FSM.ShowDebug = this.ShowDebug;
+        FSMInfos.Controller = this;
+        FSMInfos.PcentLife = PcentLife;
+        FSM.Update(FSMInfos);
     }
 }

@@ -5,6 +5,7 @@ using UnityEngine;
 public struct SightStimulus
 {
     public Vector3 position;
+    public Vector3 velocity;
     public float accuracy;
 }
 

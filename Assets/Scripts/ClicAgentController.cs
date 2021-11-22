@@ -7,7 +7,7 @@ public class ClicAgentController : AgentController
 {
     private Ray rayPickPos; //Déclaré ici pour pouvoir le visualiser, il doit rester accessible entre deux clics
 
-    void Update()
+    protected void Update()
     {
         if (Input.GetButtonDown("Fire1"))
         {
